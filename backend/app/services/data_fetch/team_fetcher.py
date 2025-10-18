@@ -1,13 +1,13 @@
 import requests
-from app.core.config import api_key
+from app.core.settings import api_key
 from fuzzywuzzy import process
 from datetime import datetime
 
 BASE_URL = "https://v3.football.api-sports.io"
 
 headers = {
-    "x-rapidapi-key": api_key,
-    "x-rapidapi-host": "v3.football.api-sports.io"
+    'x-rapidapi-key': api_key,
+    'x-rapidapi-host': 'v3.football.api-sports.io'
 }
 
 def get_season_year():
