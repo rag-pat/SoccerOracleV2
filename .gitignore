@@ -206,5 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-backend/app/core/config.py
+.env
+backend/app/core/settings.py
 
+backend/app/core/config.py
