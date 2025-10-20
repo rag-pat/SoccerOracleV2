@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+.env
+backend/app/core/settings.py
+
+backend/app/core/config.py
