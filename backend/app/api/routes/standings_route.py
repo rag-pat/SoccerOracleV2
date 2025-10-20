@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.services.data_fetch.team_fetcher import get_league_id
 from app.schemas.league_schema import LeagueSchema
+from app.services.data_fetch.id_fetcher import get_league_id
 
 standings_router = APIRouter()
 
