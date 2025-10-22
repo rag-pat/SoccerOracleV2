@@ -17,11 +17,9 @@ def get_season_year():
     year = current_date.year
     month = current_date.month
     
-    # Premier League season typically runs from August to May
-    # If we're in the first half of the year, we're still in the previous season
-    if month >= 8:  # August onwards, we're in the new season
+    if month >= 8:
         return year
-    else:  # Before August, we're still in the previous season
+    else:
         return year - 1
 
 def get_league_id(league_name):
@@ -56,54 +54,39 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
     """Fetch team ID for a given team name."""
     if not season:
         season = get_season_year()
-    
-    print(f"[DEBUG] Using season: {season}")
 
     league_id = get_league_id(league_name)
-    print(f"[DEBUG] Resolved league_id for '{league_name}': {league_id}")
 
     if not league_id:
-        print("[ERROR] No valid league_id found")
         return None
 
     # Check database cache first
     existing_team = get_team_by_name(team_name, league_id)
     if existing_team:
-        print(f"[INFO] Found team '{existing_team[1]}' (ID: {existing_team[0]}) in database cache")
         return existing_team[0]
 
-    # Use season 2023 as it has reliable data
     working_season = 2023
     url = f"{BASE_URL}/teams"
-    
-    # Get all teams first (search parameter seems to have issues)
+
     params = {"league": league_id, "season": working_season}
-    print(f"[DEBUG] Calling API with params: {params}")
     
     response = requests.get(url, headers=headers, params=params)
 
     if response.status_code != 200:
-        print(f"[ERROR] Team fetch failed: {response.status_code} → {response.text[:200]}")
         return None
 
     data = response.json()
     all_teams = data.get("response", [])
-    print(f"[DEBUG] Found {len(all_teams)} teams for league {league_id}, season {working_season}")
 
     if not all_teams:
-        print(f"[ERROR] No teams found for league {league_id}, season {working_season}")
         return None
 
-    # Filter teams by name using fuzzy matching
     team_names = [t["team"]["name"] for t in all_teams]
-    print(f"[DEBUG] Available teams: {team_names[:5]}...")  # Show first 5 teams
     
     # Use fuzzy matching to find the best match
     best_match, confidence = process.extractOne(team_name, team_names)
-    print(f"[DEBUG] Best match for '{team_name}': '{best_match}' (confidence: {confidence})")
     
-    if confidence < 60:  # If confidence is too low, return None
-        print(f"[ERROR] No good match found for '{team_name}' (confidence: {confidence})")
+    if confidence < 60:
         return None
     
     # Find the matched team
@@ -112,7 +95,7 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
     team_name_api = matched_team["team"]["name"]
     
     # Cache the team in database
-    insert_team(team_id, team_name_api, league_id)
+    insert_team(team_id, team_name_api, league_id, league_name)
     
     print(f"[SUCCESS] Found team '{best_match}' → ID: {team_id}")
     return team_id

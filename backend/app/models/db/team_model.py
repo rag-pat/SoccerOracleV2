@@ -17,17 +17,17 @@ def get_team_by_name(team_name: str, league_id: int):
         return None
 
 # Write to Database
-def insert_team(team_id: int, team_name: str, league_id: int):
+def insert_team(team_id: int, team_name: str, league_id: int, league_name: str):
     try:
         conn = psycopg2.connect(supabase_connection_uri)
         cur = conn.cursor()
         cur.execute(
             """
-            INSERT INTO teams (id, team_name, league_id)
-            VALUES (%s, %s, %s)
+            INSERT INTO teams (id, team_name, league_id, league_name)
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (id) DO NOTHING;
             """,
-            (team_id, team_name, league_id),
+            (team_id, team_name, league_id, league_name),
         )
         conn.commit()
         print("[DEBUG] Commit successful for team:", team_name)

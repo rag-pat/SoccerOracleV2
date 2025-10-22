@@ -1,7 +1,7 @@
 import psycopg2
 from app.core.settings import supabase_connection_uri
 
-# Write to Database
+# Read from Database
 def get_league_by_name(league_name: str):
     try:
         conn = psycopg2.connect(supabase_connection_uri)
@@ -16,7 +16,7 @@ def get_league_by_name(league_name: str):
         print("[INFO] Continuing without database cache...")
         return None
 
-# Read from Database
+# Write to Database
 def insert_league(league_id: int, league_name: str):
     try:
         conn = psycopg2.connect(supabase_connection_uri)
