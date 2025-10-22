@@ -3,6 +3,7 @@ from app.core.settings import api_key
 from fuzzywuzzy import process
 from datetime import datetime
 from app.models.db.league_model import get_league_by_name, insert_league
+from app.models.db.team_model import get_team_by_name, insert_team
 
 BASE_URL = "https://v3.football.api-sports.io"
 
@@ -65,6 +66,12 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
         print("[ERROR] No valid league_id found")
         return None
 
+    # Check database cache first
+    existing_team = get_team_by_name(team_name, league_id)
+    if existing_team:
+        print(f"[INFO] Found team '{existing_team[1]}' (ID: {existing_team[0]}) in database cache")
+        return existing_team[0]
+
     # Use season 2023 as it has reliable data
     working_season = 2023
     url = f"{BASE_URL}/teams"
@@ -102,6 +109,10 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
     # Find the matched team
     matched_team = next(t for t in all_teams if t["team"]["name"] == best_match)
     team_id = matched_team["team"]["id"]
+    team_name_api = matched_team["team"]["name"]
+    
+    # Cache the team in database
+    insert_team(team_id, team_name_api, league_id)
     
     print(f"[SUCCESS] Found team '{best_match}' → ID: {team_id}")
     return team_id
