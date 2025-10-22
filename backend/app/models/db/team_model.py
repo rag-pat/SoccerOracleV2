@@ -30,10 +30,8 @@ def insert_team(team_id: int, team_name: str, league_id: int, league_name: str):
             (team_id, team_name, league_id, league_name),
         )
         conn.commit()
-        print("[DEBUG] Commit successful for team:", team_name)
         cur.close()
         conn.close()
-        print(f"[INFO] Cached team {team_name} (ID: {team_id}) to database")
     except Exception as e:
         print(f"[WARNING] Database connection failed: {e}")
         print("[INFO] Continuing without database cache...")
