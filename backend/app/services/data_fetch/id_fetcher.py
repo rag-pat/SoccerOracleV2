@@ -4,6 +4,7 @@ from fuzzywuzzy import process
 from datetime import datetime
 from app.models.db.league_model import get_league_by_name, insert_league
 from app.models.db.team_model import get_team_by_name, insert_team
+from app.models.db.player_model import get_player_by_name, insert_player
 
 BASE_URL = "https://v3.football.api-sports.io"
 
@@ -109,6 +110,11 @@ def get_player_id(player_name: str, team_name: str, league_name: str, season: in
     if not team_id:
         return None
 
+    # Check database cache first
+    existing_player = get_player_by_name(player_name)
+    if existing_player:
+        return existing_player[0], existing_player[1]  # player_id, player_name
+
     url = f"{BASE_URL}/players/squads"
     params = {"team": team_id}
     response = requests.get(url, headers=headers, params=params)
@@ -127,5 +133,13 @@ def get_player_id(player_name: str, team_name: str, league_name: str, season: in
         return None
     
     player_data = next(p for p in players if p["name"] == best_match)
-    return player_data["id"], best_match
+    player_id = player_data["id"]
+    player_name_api = player_data["name"]
+    photo_url = player_data.get("photo", "")
+    
+    # Cache the player in database
+    insert_player(player_id, player_name_api, photo_url)
+    
+    print(f"[SUCCESS] Found player '{best_match}' → ID: {player_id}")
+    return player_id, best_match
         
