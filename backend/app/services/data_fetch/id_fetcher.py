@@ -65,10 +65,9 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
     if existing_team:
         return existing_team[0]
 
-    working_season = 2023
     url = f"{BASE_URL}/teams"
 
-    params = {"league": league_id, "season": working_season}
+    params = {"league": league_id, "season": season}
     
     response = requests.get(url, headers=headers, params=params)
 
@@ -99,3 +98,34 @@ def get_team_id(team_name: str, league_name: str, season: int | None = None):
     
     print(f"[SUCCESS] Found team '{best_match}' → ID: {team_id}")
     return team_id
+
+def get_player_id(player_name: str, team_name: str, league_name: str, season: int | None = None):
+    """Fetch player ID for a given player name."""
+    if not season:
+        season = get_season_year()
+        
+    team_id = get_team_id(team_name, league_name, season)
+
+    if not team_id:
+        return None
+
+    url = f"{BASE_URL}/players/squads"
+    params = {"team": team_id}
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code != 200:
+        return None
+
+    data = response.json()
+    players = data["response"][0]["players"]
+    
+    # Find closest matching player name
+    player_names = [p["name"] for p in players]
+    best_match, score = process.extractOne(player_name, player_names)
+    
+    if score < 60:  # Threshold for matching
+        return None
+    
+    player_data = next(p for p in players if p["name"] == best_match)
+    return player_data["id"], best_match
+        
